@@ -21,13 +21,7 @@ Make sure you have **Python 3** installed.
 
 ### Run in Terminal:
 
-python3 robot_simulator.py
-
-Choose a mode:
-
-Type 1 for Interactive Mode (manual commands).
-
-Type 2 for Demo Mode (automatic sample run).
+python3 app.py
 
 
 🛠️ Features and Methods
@@ -87,22 +81,15 @@ reset(): Resets robot to starting point.
 expand_grid(new_width, new_height): Manually expand the grid.
 
 
-📸 Example Commands (Interactive Mode)
+## 🌐 Web Interface
 
+In addition to the command-line simulator, a **web interface** was created to allow non-programmers to easily control the robot via buttons and custom commands on a simple webpage. This makes the simulator more accessible to users without programming knowledge.
 
-forward 2
+The web interface is built using **Flask** for the backend and standard **HTML/CSS/JavaScript** for the frontend.
 
-right
+To run the web interface:
 
-forward
-
-diagonal southeast
-
-obstacle 4 3
-
-report
-
-grid
-
-reset
+1. Start the Flask app (`app.py`).
+2. Open your browser and navigate to `http://127.0.0.1:5000/`.
+3. Use the buttons or type commands to control the robot.
 
