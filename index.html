@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robot Simulator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #4a5568;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 30px;
+        }
+
+        .grid-container {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: inset 0 4px 8px rgba(0,0,0,0.05);
+        }
+
+        .grid {
+            display: inline-grid;
+            gap: 2px;
+            background: #e2e8f0;
+            padding: 15px;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+
+        .cell {
+            width: 40px;
+            height: 40px;
+            background: #ffffff;
+            border: 2px solid #cbd5e0;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .cell.robot {
+            background: linear-gradient(45deg, #48bb78, #38a169);
+            color: white;
+            border-color: #2f855a;
+            animation: pulse 2s infinite;
+            box-shadow: 0 0 15px rgba(72, 187, 120, 0.5);
+        }
+
+        .cell.obstacle {
+            background: linear-gradient(45deg, #e53e3e, #c53030);
+            color: white;
+            border-color: #9b2c2c;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .controls {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: inset 0 4px 8px rgba(0,0,0,0.05);
+        }
+
+        .status-panel {
+            background: linear-gradient(135deg, #4299e1, #3182ce);
+            color: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 16px rgba(66, 153, 225, 0.3);
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .battery-bar {
+            width: 100%;
+            height: 20px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+
+        .battery-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #48bb78, #38a169);
+            transition: width 0.5s ease;
+            border-radius: 10px;
+        }
+
+        .battery-low {
+            background: linear-gradient(90deg, #e53e3e, #c53030) !important;
+            animation: flash 1s infinite;
+        }
+
+        @keyframes flash {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .control-section {
+            margin-bottom: 25px;
+        }
+
+        .control-section h3 {
+            color: #4a5568;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 5px;
+        }
+
+        .button-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .btn {
+            padding: 12px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #e53e3e, #c53030);
+            box-shadow: 0 4px 8px rgba(229, 62, 62, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            box-shadow: 0 4px 8px rgba(72, 187, 120, 0.3);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #ed8936, #dd6b20);
+            box-shadow: 0 4px 8px rgba(237, 137, 54, 0.3);
+        }
+
+        .input-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .input-group input {
+            padding: 8px 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 14px;
+            flex: 1;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .log {
+            background: #1a202c;
+            color: #e2e8f0;
+            border-radius: 8px;
+            padding: 15px;
+            height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.4;
+            margin-top: 15px;
+        }
+
+        .log::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .log::-webkit-scrollbar-track {
+            background: #2d3748;
+            border-radius: 4px;
+        }
+
+        .log::-webkit-scrollbar-thumb {
+            background: #4a5568;
+            border-radius: 4px;
+        }
+
+        .grid-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .grid-controls input {
+            width: 60px;
+            padding: 6px;
+            border: 2px solid #e2e8f0;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .coordinates {
+            font-size: 12px;
+            color: #718096;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 Robot Simulator</h1>
+        
+        <div class="main-content">
+            <div class="grid-container">
+                <div class="grid-controls">
+                    <label>Width: <input type="number" id="gridWidth" value="8" min="5" max="20"></label>
+                    <label>Height: <input type="number" id="gridHeight" value="8" min="5" max="20"></label>
+                    <button class="btn btn-warning" onclick="resizeGrid()">Resize Grid</button>
+                </div>
+                
+                <div id="gridDisplay" class="grid"></div>
+                
+                <div class="coordinates">
+                    Click on empty cells to add obstacles. Robot starts at (0,0) facing North.
+                </div>
+            </div>
+            
+            <div class="controls">
+                <div class="status-panel">
+                    <h3 style="margin-bottom: 15px; color: white;">🔋 Robot Status</h3>
+                    <div class="status-item">
+                        <span>Position:</span>
+                        <span id="position">(0, 0)</span>
+                    </div>
+                    <div class="status-item">
+                        <span>Direction:</span>
+                        <span id="direction">NORTH</span>
+                    </div>
+                    <div class="status-item">
+                        <span>Battery:</span>
+                        <span id="batteryText">100%</span>
+                    </div>
+                    <div class="battery-bar">
+                        <div class="battery-fill" id="batteryFill"></div>
+                    </div>
+                    <div class="status-item" style="margin-top: 10px;">
+                        <span>Total Moves:</span>
+                        <span id="moveCount">0</span>
+                    </div>
+                </div>
+                
+                <div class="control-section">
+                    <h3>🎮 Movement Controls</h3>
+                    <div class="button-group">
+                        <button class="btn" onclick="turnLeft()">← Left</button>
+                        <button class="btn" onclick="moveForward()">↑ Forward</button>
+                        <button class="btn" onclick="turnRight()">→ Right</button>
+                    </div>
+                    
+                    <div class="input-group">
+                        <input type="number" id="forwardSteps" value="1" min="1" max="10" placeholder="Steps">
+                        <button class="btn" onclick="moveForwardSteps()">Move Forward</button>
+                    </div>
+                </div>
+                
+                <div class="control-section">
+                    <h3>↗️ Diagonal Movement</h3>
+                    <div class="button-group">
+                        <button class="btn" onclick="moveDiagonal('northwest')">↖ NW</button>
+                        <button class="btn" onclick="moveDiagonal('northeast')">↗ NE</button>
+                        <button class="btn" onclick="moveDiagonal('southwest')">↙ SW</button>
+                        <button class="btn" onclick="moveDiagonal('southeast')">↘ SE</button>
+                    </div>
+                </div>
+                
+                <div class="control-section">
+                    <h3>🚧 Obstacle Management</h3>
+                    <div class="input-group">
+                        <input type="number" id="obsX" placeholder="X" min="0">
+                        <input type="number" id="obsY" placeholder="Y" min="0">
+                        <button class="btn btn-danger" onclick="addObstacle()">Add</button>
+                        <button class="btn btn-success" onclick="removeObstacle()">Remove</button>
+                    </div>
+                    <button class="btn btn-warning" onclick="clearObstacles()">Clear All</button>
+                </div>
+                
+                <div class="control-section">
+                    <h3>⚡ Power & Reset</h3>
+                    <div class="button-group">
+                        <button class="btn btn-success" onclick="chargeBattery(25)">Charge +25%</button>
+                        <button class="btn btn-success" onclick="chargeBattery(50)">Charge +50%</button>
+                        <button class="btn btn-danger" onclick="resetRobot()">Reset Robot</button>
+                    </div>
+                </div>
+                
+                <div id="log" class="log"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Robot simulator state
+        let robot = {
+            x: 0,
+            y: 0,
+            direction: 0, // 0=North, 1=East, 2=South, 3=West
+            battery: 100,
+            moveCount: 0,
+            gridWidth: 8,
+            gridHeight: 8,
+            obstacles: new Set()
+        };
+
+        const directions = ['NORTH', 'EAST', 'SOUTH', 'WEST'];
+        const directionSymbols = ['↑', '→', '↓', '←'];
+        const directionVectors = [
+            [0, 1],   // North
+            [1, 0],   // East
+            [0, -1],  // South
+            [-1, 0]   // West
+        ];
+
+        const diagonalVectors = {
+            'northwest': [-1, 1],
+            'northeast': [1, 1],
+            'southwest': [-1, -1],
+            'southeast': [1, -1]
+        };
+
+        function log(message) {
+            const logElement = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logElement.innerHTML += `[${timestamp}] ${message}\n`;
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        function updateDisplay() {
+            // Update status panel
+            document.getElementById('position').textContent = `(${robot.x}, ${robot.y})`;
+            document.getElementById('direction').textContent = directions[robot.direction];
+            document.getElementById('batteryText').textContent = `${robot.battery}%`;
+            document.getElementById('moveCount').textContent = robot.moveCount;
+            
+            // Update battery bar
+            const batteryFill = document.getElementById('batteryFill');
+            batteryFill.style.width = `${robot.battery}%`;
+            batteryFill.classList.toggle('battery-low', robot.battery <= 20);
+            
+            // Update grid
+            updateGrid();
+        }
+
+        function updateGrid() {
+            const grid = document.getElementById('gridDisplay');
+            grid.style.gridTemplateColumns = `repeat(${robot.gridWidth}, 40px)`;
+            grid.innerHTML = '';
+            
+            // Create cells from top to bottom (reverse y order for display)
+            for (let y = robot.gridHeight - 1; y >= 0; y--) {
+                for (let x = 0; x < robot.gridWidth; x++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.onclick = () => toggleObstacle(x, y);
+                    
+                    if (x === robot.x && y === robot.y) {
+                        cell.classList.add('robot');
+                        cell.textContent = directionSymbols[robot.direction];
+                    } else if (robot.obstacles.has(`${x},${y}`)) {
+                        cell.classList.add('obstacle');
+                        cell.textContent = '#';
+                    } else {
+                        cell.textContent = '';
+                    }
+                    
+                    grid.appendChild(cell);
+                }
+            }
+        }
+
+        function toggleObstacle(x, y) {
+            if (x === robot.x && y === robot.y) {
+                log("Cannot place obstacle on robot's position!");
+                return;
+            }
+            
+            const key = `${x},${y}`;
+            if (robot.obstacles.has(key)) {
+                robot.obstacles.delete(key);
+                log(`Obstacle removed from (${x}, ${y})`);
+            } else {
+                robot.obstacles.add(key);
+                log(`Obstacle added at (${x}, ${y})`);
+            }
+            updateDisplay();
+        }
+
+        function consumeBattery(amount = 1) {
+            if (robot.battery <= 0) {
+                log("🔴 ERROR: Robot battery is dead! Cannot perform actions.");
+                return false;
+            }
+            
+            robot.battery = Math.max(0, robot.battery - amount);
+            
+            if (robot.battery === 0) {
+                log("⚠️ WARNING: Battery critically low!");
+            } else if (robot.battery <= 20) {
+                log(`⚠️ WARNING: Low battery (${robot.battery}%)`);
+            }
+            
+            return true;
+        }
+
+        function isValidPosition(x, y) {
+            return x >= 0 && x < robot.gridWidth && y >= 0 && y < robot.gridHeight;
+        }
+
+        function moveForward() {
+            if (!consumeBattery(1)) return;
+            
+            const [dx, dy] = directionVectors[robot.direction];
+            const newX = robot.x + dx;
+            const newY = robot.y + dy;
+            
+            if (!isValidPosition(newX, newY)) {
+                log(`🔴 ERROR: Cannot move to (${newX}, ${newY}) - outside grid boundaries`);
+                return;
+            }
+            
+            if (robot.obstacles.has(`${newX},${newY}`)) {
+                log(`🔴 ERROR: Cannot move to (${newX}, ${newY}) - obstacle present!`);
+                return;
+            }
+            
+            robot.x = newX;
+            robot.y = newY;
+            robot.moveCount++;
+            
+            log(`✅ Moved forward to (${robot.x}, ${robot.y})`);
+            updateDisplay();
+        }
+
+        function moveForwardSteps() {
+            const steps = parseInt(document.getElementById('forwardSteps').value) || 1;
+            
+            if (!consumeBattery(steps)) return;
+            
+            const [dx, dy] = directionVectors[robot.direction];
+            const newX = robot.x + (dx * steps);
+            const newY = robot.y + (dy * steps);
+            
+            if (!isValidPosition(newX, newY)) {
+                log(`🔴 ERROR: Cannot move ${steps} steps to (${newX}, ${newY}) - outside grid boundaries`);
+                robot.battery += steps; // Refund battery
+                return;
+            }
+            
+            // Check path for obstacles
+            for (let i = 1; i <= steps; i++) {
+                const checkX = robot.x + (dx * i);
+                const checkY = robot.y + (dy * i);
+                if (robot.obstacles.has(`${checkX},${checkY}`)) {
+                    log(`🔴 ERROR: Cannot move ${steps} steps - obstacle at (${checkX}, ${checkY})`);
+                    robot.battery += steps; // Refund battery
+                    return;
+                }
+            }
+            
+            robot.x = newX;
+            robot.y = newY;
+            robot.moveCount += steps;
+            
+            log(`✅ Moved forward ${steps} steps to (${robot.x}, ${robot.y})`);
+            updateDisplay();
+        }
+
+        function turnLeft() {
+            if (!consumeBattery(1)) return;
+            
+            robot.direction = (robot.direction + 3) % 4; // -1 with wrap-around
+            log(`↩️ Turned left, now facing ${directions[robot.direction]}`);
+            updateDisplay();
+        }
+
+        function turnRight() {
+            if (!consumeBattery(1)) return;
+            
+            robot.direction = (robot.direction + 1) % 4;
+            log(`↪️ Turned right, now facing ${directions[robot.direction]}`);
+            updateDisplay();
+        }
+
+        function moveDiagonal(direction) {
+            if (!consumeBattery(2)) return; // Diagonal moves cost more
+            
+            const [dx, dy] = diagonalVectors[direction];
+            const newX = robot.x + dx;
+            const newY = robot.y + dy;
+            
+            if (!isValidPosition(newX, newY)) {
+                log(`🔴 ERROR: Cannot move diagonally ${direction} to (${newX}, ${newY}) - outside grid boundaries`);
+                robot.battery += 2; // Refund battery
+                return;
+            }
+            
+            if (robot.obstacles.has(`${newX},${newY}`)) {
+                log(`🔴 ERROR: Cannot move diagonally to (${newX}, ${newY}) - obstacle present!`);
+                robot.battery += 2; // Refund battery
+                return;
+            }
+            
+            robot.x = newX;
+            robot.y = newY;
+            robot.moveCount++;
+            
+            log(`✅ Moved diagonally ${direction} to (${robot.x}, ${robot.y})`);
+            updateDisplay();
+        }
+
+        function addObstacle() {
+            const x = parseInt(document.getElementById('obsX').value);
+            const y = parseInt(document.getElementById('obsY').value);
+            
+            if (isNaN(x) || isNaN(y)) {
+                log("🔴 ERROR: Please enter valid coordinates");
+                return;
+            }
+            
+            if (!isValidPosition(x, y)) {
+                log(`🔴 ERROR: Cannot place obstacle at (${x}, ${y}) - outside grid`);
+                return;
+            }
+            
+            if (x === robot.x && y === robot.y) {
+                log("🔴 ERROR: Cannot place obstacle on robot's current position");
+                return;
+            }
+            
+            robot.obstacles.add(`${x},${y}`);
+            log(`✅ Obstacle added at (${x}, ${y})`);
+            
+            // Clear inputs
+            document.getElementById('obsX').value = '';
+            document.getElementById('obsY').value = '';
+            
+            updateDisplay();
+        }
+
+        function removeObstacle() {
+            const x = parseInt(document.getElementById('obsX').value);
+            const y = parseInt(document.getElementById('obsY').value);
+            
+            if (isNaN(x) || isNaN(y)) {
+                log("🔴 ERROR: Please enter valid coordinates");
+                return;
+            }
+            
+            const key = `${x},${y}`;
+            if (robot.obstacles.has(key)) {
+                robot.obstacles.delete(key);
+                log(`✅ Obstacle removed from (${x}, ${y})`);
+            } else {
+                log(`ℹ️ No obstacle at (${x}, ${y}) to remove`);
+            }
+            
+            // Clear inputs
+            document.getElementById('obsX').value = '';
+            document.getElementById('obsY').value = '';
+            
+            updateDisplay();
+        }
+
+        function clearObstacles() {
+            const count = robot.obstacles.size;
+            robot.obstacles.clear();
+            log(`✅ Cleared ${count} obstacles from grid`);
+            updateDisplay();
+        }
+
+        function chargeBattery(amount) {
+            const oldLevel = robot.battery;
+            robot.battery = Math.min(100, robot.battery + amount);
+            const gained = robot.battery - oldLevel;
+            log(`🔋 Battery charged! Gained ${gained}% (now ${robot.battery}%)`);
+            updateDisplay();
+        }
+
+        function resetRobot() {
+            robot.x = 0;
+            robot.y = 0;
+            robot.direction = 0;
+            robot.battery = 100;
+            robot.moveCount = 0;
+            robot.obstacles.clear();
+            
+            log("🔄 Robot reset to initial state");
+            document.getElementById('log').innerHTML = '';
+            updateDisplay();
+        }
+
+        function resizeGrid() {
+            const newWidth = parseInt(document.getElementById('gridWidth').value);
+            const newHeight = parseInt(document.getElementById('gridHeight').value);
+            
+            if (newWidth < 5 || newHeight < 5 || newWidth > 20 || newHeight > 20) {
+                log("🔴 ERROR: Grid size must be between 5x5 and 20x20");
+                return;
+            }
+            
+            // Remove obstacles outside new grid bounds
+            const toRemove = [];
+            robot.obstacles.forEach(key => {
+                const [x, y] = key.split(',').map(Number);
+                if (x >= newWidth || y >= newHeight) {
+                    toRemove.push(key);
+                }
+            });
+            
+            toRemove.forEach(key => robot.obstacles.delete(key));
+            
+            // Move robot if outside new bounds
+            if (robot.x >= newWidth || robot.y >= newHeight) {
+                robot.x = 0;
+                robot.y = 0;
+                log("⚠️ Robot moved to (0,0) due to grid resize");
+            }
+            
+            robot.gridWidth = newWidth;
+            robot.gridHeight = newHeight;
+            
+            log(`📏 Grid resized to ${newWidth}x${newHeight}`);
+            updateDisplay();
+        }
+
+        // Initialize the display
+        log("🤖 Robot Simulator initialized!");
+        log("Grid: 8x8, Position: (0,0), Direction: NORTH, Battery: 100%");
+        
+        // Add some initial obstacles for demo
+        robot.obstacles.add('2,2');
+        robot.obstacles.add('3,3');
+        robot.obstacles.add('1,4');
+        log("Demo obstacles placed at (2,2), (3,3), and (1,4)");
+        
+        updateDisplay();
+
+        // Add keyboard controls
+        document.addEventListener('keydown', function(event) {
+            switch(event.key) {
+                case 'ArrowUp':
+                case 'w':
+                case 'W':
+                    event.preventDefault();
+                    moveForward();
+                    break;
+                case 'ArrowLeft':
+                case 'a':
+                case 'A':
+                    event.preventDefault();
+                    turnLeft();
+                    break;
+                case 'ArrowRight':
+                case 'd':
+                case 'D':
+                    event.preventDefault();
+                    turnRight();
+                    break;
+                case ' ':
+                    event.preventDefault();
+                    chargeBattery(25);
+                    break;
+                case 'r':
+                case 'R':
+                    if (event.ctrlKey) {
+                        event.preventDefault();
+                        resetRobot();
+                    }
+                    break;
+            }
+        });
+    </script>
+</body>
+</html>
