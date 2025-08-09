@@ -1,0 +1,12 @@
+# =====================================
+# Robot Simulator - Requirements
+# =====================================
+
+# Core dependencies
+Flask>=2.0.0      # Web framework to serve the robot simulator on a browser
+
+# -------------------------------------
+# Optional packages
+# -------------------------------------
+# matplotlib>=3.4.0    # For graphical grid visualization (plots, charts)
+# rich>=12.0.0         # For colorful, styled output in the terminal
